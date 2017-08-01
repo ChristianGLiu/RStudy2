@@ -1,1 +1,49 @@
+iris
+str(iris)
 
+boxplot(iris)
+
+length(rownames(iris))
+
+iris.train.indx<- sample(1:150, length(rownames(iris))*0.7, replace = FALSE)
+
+iris.train1<-iris[iris.train.indx,]
+str(iris.train1)
+
+iris.test1<-iris[-iris.train.indx,]
+str(iris.test1)
+
+par(mfrow=c(1,3))
+boxplot(iris)
+boxplot(iris.train1)
+boxplot(iris.test1)
+
+
+
+// createDataPartition 이용 
+install.packages("caret")
+install.packages("stringr")
+
+library(lattice)
+library(ggplot2)
+library(stringr)
+library(caret)
+
+indx<-createDataPartition(y=iris$Species, p=0.7,times=1, list=F)
+indx
+
+iris.train2<-iris[indx,]
+head(iris.train2)
+
+iris.test2<-iris[-indx,]
+head(iris.test2)
+
+
+par(mfrow=c(2,3))
+boxplot(iris)
+boxplot(iris.train1)
+boxplot(iris.test1)
+
+boxplot(iris)
+boxplot(iris.train2)
+boxplot(iris.test2)
