@@ -1,1 +1,18 @@
-test
+data<-read.csv("top_supermarket_transactions.csv")
+
+row.names(data)<-data[[1]]
+data<-subset(data, select = c(-1))
+
+data['milk',]
+sort(data['milk',], decreasing=TRUE)
+
+data['bread',]
+sort(data['bread',], decreasing=TRUE)
+
+
+mosaicplot(as.matrix(data),
+color=TRUE,
+title(main="Products Contingency Mosaic Plot"),
+las=2
+) 
+
