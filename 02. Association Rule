@@ -16,3 +16,98 @@ title(main="Products Contingency Mosaic Plot"),
 las=2
 ) 
 
+//Recomendations based on global products continegncy matrix 
+cat("Recomendations based on global products continegncy matrix")
+data
+items<-names(data)
+items
+
+for (item in items) {
+	cat(paste("Top 2 recommended items to by with", item, "are:"))
+	item.data<-subset(data[item,], select=names(data)[!names(data) %in% item])
+	cat(names(item.data[order(item.data, decreasing=TRUE)][c(1,2)]))
+	cat("\n")
+	}
+
+data(Groceries)
+	
+install.packages("arules")
+library(arules)
+
+library(Matrix)
+library(arules)
+
+data(Groceries)
+inspect(Groceries[1:3])
+
+ct<-crossTable(Groceries, measure="count", sort=TRUE)
+write.csv(ct, "ct.csv")
+ct[1:5,1:5]
+
+ct<-crossTable(Groceries, measure="support", sort=TRUE)
+ct[1:5,1:5]
+
+
+ct<-crossTable(Groceries, measure="lift", sort=TRUE)
+ct[1:5,1:5]
+
+//frequent itemset generation 
+
+install.packages("dplyr")
+install.packages("gridExtra")
+
+library(dplyr)
+library(gridExtra)
+
+## 벡터를 리스트로 만드는 함수 생성
+
+## Utility function: Appends vectors to a list
+list.append <- function (mylist, ...){
+  mylist <- c(mylist, list(...))
+  return(mylist)
+}
+
+aa<-1:5
+list.append(aa)
+
+## 1단계: 데이터 세트를 파일로부터 읽는 함수 
+get_transaction_dataset <- function(filename){
+  
+  df <- read.csv(filename, header = FALSE)
+  dataset <- list()
+  
+  for (index in seq(nrow(df))){
+    transaction.set <- as.vector(unlist(df[index,]))
+    transaction.set <- transaction.set[transaction.set != ""]
+    dataset <- list.append(dataset, transaction.set)
+  }
+  
+  return(dataset)
+  }
+
+## 2단계: 데이터 세트를 데이터 프레임으로 변환하는 함수 
+get_item_freq_table <- function(dataset){
+  item.freq.table <- unlist(dataset) %>% table %>% data.frame
+  return (item.freq.table)
+}
+
+
+##3단계: 최소 빈도수를 기준으로 아이템을 잘라내는 함수 
+prune_item_freq_table <- function(item.freq.table, item.min.freq){
+  pruned.item.table <- item.freq.table[item.freq.table$Freq >= item.min.freq,]
+  return (pruned.item.table)
+}
+
+## 4단계 N개의 아이템을 가진 아이템 셋트 생성 
+get_associated_itemset_combinations <- function(pruned.item.table, num.items){
+  itemset.associations <- c()
+  itemset.association.matrix <- combn(pruned.item.table$., num.items)
+  for (index in seq(ncol(itemset.association.matrix))){
+    itemset.associations <- c(itemset.associations,
+                              paste(itemset.association.matrix[,index],
+                                    collapse = ", ")
+                            )
+  }
+  itemset.associations <- unique(itemset.associations)
+  return (itemset.associations)
+}
