@@ -345,3 +345,84 @@ frequent.itemsets.support
   }
   grid.table(frequent.itemsets)
 }
+
+
+
+
+
+## 식료품 데이터 분석 
+Groceries
+
+
+# 패키지 로딩 
+install.packages("arulesViz")
+library(arules)
+library(arulesViz)
+
+## loading dataset
+data(Groceries)
+
+## 10개의 최다 구매 물품 
+## type 값: "absolute"는 count값,  "relative"는 support값 default는 relative 
+sort(itemFrequency(Groceries, type="absolute"), decreasing = TRUE)[1:10]
+# visualizing the top ten purchased products
+itemFrequencyPlot(Groceries,topN=10,type="absolute")
+
+## 연관관계 규칙 만들기 
+metric.params <- list(supp=0.001, conf=0.5)
+rules <- apriori(Groceries, parameter = metric.params)
+inspect(rules[1:5])
+
+
+
+## 어프라이어리의 중복 규칙 가지 치기 
+prune.dup.rules <- function(rules){
+  rule.subset.matrix <- is.subset(rules, rules)
+  rule.subset.matrix[lower.tri(rule.subset.matrix, diag=T)] <- NA
+  dup.rules <- colSums(rule.subset.matrix, na.rm=T) >= 1
+  pruned.rules <- rules[!dup.rules]
+  return(pruned.rules)
+}
+
+
+## 신뢰도 값으로 정렬하여 규칙 보기 
+rules <- sort(rules, by="confidence", decreasing=TRUE)
+rules <- prune.dup.rules(rules)
+inspect(rules[1:5])
+
+
+## 향상도로 정렬하여 규칙 보기 
+rules<-sort(rules, by="lift", decreasing=TRUE)
+rules <- prune.dup.rules(rules)
+inspect(rules[1:5])
+
+## 고객이 연관관계 우변에 있는 아이템 구매 했을 때 장바구니에 넣을 수 있는 아이템 예측 하기 
+## 에러 발생하는 경우 prune.dup.rules 실행하지 않기 
+metric.params <- list(supp=0.001,conf = 0.5, minlen=2)
+rules<-apriori(data=Groceries, parameter=metric.params, 
+               appearance = list(default="lhs",rhs="soda"),
+               control = list(verbose=F))
+
+# rules<-sort(rules, decreasing=TRUE,by="confidence")
+inspect(rules[1:5])
+
+
+##고객이 연관관계 좌변에 있는 아이템 구매 했을 때 장바구니에 넣을 수 있는 아이템 예측 하기 
+# finding items which are bought when we have an itemset on LHS
+metric.params <- list(supp=0.001,conf = 0.3, minlen=2)
+rules<-apriori(data=Groceries, parameter=metric.params, 
+               appearance = list(default="rhs",lhs=c("yogurt", "sugar")),
+               control = list(verbose=F))
+rules<-sort(rules, decreasing=TRUE,by="confidence")
+inspect(rules[1:5])
+
+
+
+## 연관관계 규칙 시각화 
+library(arulesViz)
+plot(rules,method="graph",interactive=TRUE,shading=TRUE)
+
+
+
+
+
